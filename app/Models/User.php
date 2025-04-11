@@ -3,6 +3,7 @@
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Models\Form;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -44,5 +45,23 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    public function form()
+    {
+        return $this->hasOne(Form::class);
+    }
+
+    protected static function booted()
+    {
+        static::created(function ($user) {
+            $user->form()->create([
+                'title' => 'Form - ' . $user->name,
+                'user_id' => $user->id,
+                'start_date' => now(),
+                'end_date' => now()->addDays(30),
+                'status' => 'pending',
+            ]);
+        });
     }
 }
