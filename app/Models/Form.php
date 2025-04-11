@@ -2,9 +2,9 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
-use Carbon\Carbon;
 
 class Form extends Model
 {
@@ -41,5 +41,15 @@ class Form extends Model
         $this->end_date = Carbon::now()->addDays(30);
         $this->status = 'paid';
         $this->save();
+    }
+
+    public function participants()
+    {
+        return $this->hasMany(Participant::class);
+    }
+
+    public function builders()
+    {
+        return $this->hasMany(FormBuilder::class);
     }
 }

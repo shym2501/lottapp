@@ -5,58 +5,41 @@
         @endphp
 
         @if ($form)
-            <div class="space-y-2">
-                <h2 class="text-lg font-bold">📋 Informasi Form Anda</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <h2 class="text-xl font-bold">📋 Formulir Anda</h2>
+                    <p><strong>Nama:</strong> {{ $form->title }}</p>
+                    <p><strong>Status:</strong>
+                        <span @class([
+                            'px-2 py-1 rounded text-white text-sm',
+                            'bg-green-500' => $form->status === 'paid',
+                            'bg-yellow-500' => $form->status === 'pending',
+                            'bg-gray-500' => $form->status === 'expired',
+                        ])>
+                            {{ ucfirst($form->status) }}
+                        </span>
+                    </p>
+                    <p><strong>Mulai:</strong> {{ $form->start_date ? \Carbon\Carbon::parse($form->start_date)->format('d M Y') : 'Belum Aktif' }}</p>
+                    <p><strong>Berakhir:</strong> {{ $form->end_date ? \Carbon\Carbon::parse($form->end_date)->format('d M Y') : 'Belum Aktif' }}</p>
+                </div>
 
-                <p><strong>Nama Form:</strong> {{ $form->title }}</p>
-                <p><strong>Status:</strong>
-                    <span @class([
-                        'px-2 py-1 rounded text-white text-md',
-                        'bg-green-500' => $form->status === 'paid',
-                        'bg-yellow-500' => $form->status === 'pending',
-                        'bg-gray-500' => $form->status === 'expired',
-                    ])>
-                        {{ ucfirst($form->status) }}
-                    </span>
-                </p>
-                <p><strong>Mulai:</strong>
-                    @if ($form->start_date)
-                        {{ $form->start_date->format('d M Y') }}
+                <div class="bg-gray-100 p-4 rounded-lg">
+                    @if ($form->status !== 'paid')
+                        <div class="text-center text-sm text-gray-700">
+                            <p class="mb-2">🔒 Formulir belum aktif.</p>
+                            <p>Silakan selesaikan pembayaran untuk mengaktifkan dan membagikan link.</p>
+                        </div>
                     @else
-                        <span class="text-sm text-red-500">Lakukan pembayaran terlebih dahulu</span>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-600 mb-2">📢 Bagikan link formulir:</p>
+                            <input type="text" value="{{ url('/form/'.$form->id) }}" readonly
+                                class="w-full text-sm bg-white border rounded px-2 py-1" />
+                        </div>
                     @endif
-                </p>
-
-                <p><strong>Berakhir:</strong>
-                    @if ($form->end_date)
-                        {{ $form->end_date->format('d M Y') }}
-                    @else
-                        <span class="text-sm text-red-500">Lakukan pembayaran terlebih dahulu</span>
-                    @endif
-                </p>
-
-
-                @if ($form->status === 'paid')
-                    <div class="flex gap-2 pt-4">
-                        <a 
-                            href="{{ route('form.show', $form->id) }}" 
-                            target="_blank"
-                            class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded hover:bg-indigo-700 transition"
-                        >
-                            🔍 Lihat Form
-                        </a>
-
-                        <button
-                            onclick="navigator.clipboard.writeText('{{ route('form.show', $form->id) }}'); alert('Link berhasil disalin!')"
-                            class="inline-flex items-center px-4 py-2 bg-orange-600 text-white text-sm font-medium rounded hover:bg-orange-700 transition"
-                        >
-                            🔗 Salin Link
-                        </button>
-                    </div>
-                @endif
+                </div>
             </div>
         @else
-            <p>Belum ada form yang terdaftar.</p>
+            <p class="text-gray-600">Anda belum memiliki formulir.</p>
         @endif
     </x-filament::card>
 </x-filament::widget>

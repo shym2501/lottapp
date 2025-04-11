@@ -4,6 +4,7 @@ namespace App\Filament\User\Pages;
 
 use Filament\Pages\Page;
 use App\Filament\User\Widgets\FormOverview;
+use App\Filament\User\Widgets\FormStatsOverview;
 
 class Dashboard extends Page
 {
@@ -16,6 +17,7 @@ class Dashboard extends Page
     protected function getHeaderWidgets(): array
     {
         return [
+            // FormStatsOverview::class,
             FormOverview::class,
         ];
     }
