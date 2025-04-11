@@ -3,8 +3,11 @@
 namespace App\Filament\User\Resources\FormBuilderResource\Pages;
 
 use App\Filament\User\Resources\FormBuilderResource;
-use Filament\Actions;
 use Filament\Resources\Pages\ListRecords;
+use Filament\Tables\Actions\CreateAction;
+use Filament\Tables\Actions\DeleteAction;
+use Filament\Tables\Actions\EditAction;
+use Filament\Actions;
 
 class ListFormBuilders extends ListRecords
 {
@@ -15,5 +18,15 @@ class ListFormBuilders extends ListRecords
         return [
             Actions\CreateAction::make(),
         ];
+    }
+
+    protected function isTableReorderable(): bool
+    {
+        return true;
+    }
+
+    protected function getDefaultTableSortColumn(): ?string
+    {
+        return 'position';
     }
 }

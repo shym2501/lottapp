@@ -4,16 +4,17 @@ namespace App\Filament\User\Resources;
 
 use App\Filament\User\Resources\FormBuilderResource\Pages;
 use App\Filament\User\Resources\FormBuilderResource\RelationManagers;
+use App\Models\Form as FormModel;
 use App\Models\FormBuilder;
+use Filament\Forms\Components\{TextInput, Select, Toggle, Section, Hidden, Placeholder};
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Tables\Columns\{TextColumn, BooleanColumn, ToggleColumn};
 use Filament\Tables\Table;
 use Filament\Forms;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use Filament\Forms\Components\{TextInput, Select, Toggle, Section};
-use Filament\Tables\Columns\{TextColumn, BooleanColumn};
 
 class FormBuilderResource extends Resource
 {
@@ -22,16 +23,22 @@ class FormBuilderResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-pencil-square';
     protected static ?int $navigationSort = 2;
 
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()->whereHas('form', function ($query) {
+            $query->where('user_id', auth()->id());
+        });
+    }
+
     public static function form(Form $form): Form
     {
+        $formModel = FormModel::where('user_id', auth()->id())->first();
         return $form
             ->schema([
-                Select::make('form_id')
-                    ->label('Form Terkait')
-                    ->relationship('form', 'title')
-                    ->required(),
-                Section::make('Pengaturan Field')
+                Section::make($formModel?->title ?? 'Belum ada form')
+                    ->description('Tambahkan Form yang akan diisi oleh peserta Exp: Nama, Email, No.Hp')
                     ->schema([
+                        Hidden::make('form_id')->default($formModel?->id),
                         TextInput::make('label')->label('Label')->required(),
                         TextInput::make('name')->label('Name Field')->required(),
                         Select::make('type')
@@ -59,10 +66,10 @@ class FormBuilderResource extends Resource
         return $table
             ->columns([
                 TextColumn::make('form.title')->label('Form'),
-                TextColumn::make('label')->label('Label'),
+                TextColumn::make('label')->label('Label')->sortable(),
                 TextColumn::make('type')->label('Tipe'),
-                BooleanColumn::make('is_required')->label('Wajib'),
-                BooleanColumn::make('is_active')->label('Aktif'),
+                ToggleColumn::make('is_required')->label('Wajib'),
+                ToggleColumn::make('is_active')->label('Aktif'),
             ])
             ->filters([
                 //
@@ -70,6 +77,7 @@ class FormBuilderResource extends Resource
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
