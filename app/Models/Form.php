@@ -52,4 +52,9 @@ class Form extends Model
     {
         return $this->hasMany(FormBuilder::class);
     }
+
+    public function coupon()
+    {
+        return $this->hasOne(Coupon::class);
+    }
 }
