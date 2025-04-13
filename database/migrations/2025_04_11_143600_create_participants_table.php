@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->foreignId('form_id')->constrained()->onDelete('cascade');
             $table->json('data');  // Data dari form dinamis disimpan dalam bentuk JSON
+            $table->string('kode_kupon')->nullable();
             $table->timestamps();
         });
     }

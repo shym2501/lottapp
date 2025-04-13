@@ -16,4 +16,20 @@ class Coupon extends Model
     {
         return $this->belongsTo(Form::class, 'form_id');
     }
+
+    public function getDigitLength(): int
+    {
+        $e = (int) $this->estimasi_peserta;
+
+        if ($e <= 9)
+            return 1;
+        if ($e <= 99)
+            return 2;
+        if ($e <= 999)
+            return 3;
+        if ($e <= 9999)
+            return 4;
+
+        return strlen((string) $e);
+    }
 }

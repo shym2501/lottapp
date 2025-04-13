@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class Participant extends Model
 {
-    protected $fillable = ['form_id', 'name', 'data'];
+    protected $fillable = ['form_id', 'name', 'data', 'kode_kupon'];
 
     protected $casts = [
         'data' => 'array',
@@ -21,6 +22,52 @@ class Participant extends Model
 
     protected static function booted()
     {
+        // Saat membuat data participant
+        static::creating(function ($participant) {
+            // Ambil form berdasarkan form_id langsung
+            $form = \App\Models\Form::find($participant->form_id);
+
+            if (!$form) {
+                return;
+            }
+
+            // Ambil coupon yang aktif untuk form ini
+            $coupon = \App\Models\Coupon::where('form_id', $form->id)->where('is_active', true)->first();
+
+            if ($coupon) {
+                $prefix = $coupon->use_prefix ? ($coupon->prefix . '-') : '';
+                $digitLength = $coupon->getDigitLength();  // Ambil panjang digit dari coupon
+
+                if ($coupon->number_type === 'sequential') {
+                    // Ambil semua nomor kupon yang sudah digunakan (hanya yang berurutan)
+                    $usedNumbers = Participant::where('form_id', $form->id)
+                        ->whereNotNull('kode_kupon')
+                        ->pluck('kode_kupon')
+                        ->map(function ($kode) use ($prefix) {
+                            return (int) str_replace($prefix, '', $kode);
+                        })
+                        ->toArray();
+
+                    // Cari angka terkecil yang belum digunakan
+                    for ($i = 1; $i <= $coupon->estimasi_peserta; $i++) {
+                        if (!in_array($i, $usedNumbers)) {
+                            $number = str_pad($i, $digitLength, '0', STR_PAD_LEFT);
+                            $participant->kode_kupon = $prefix . $number;
+                            break;
+                        }
+                    }
+                } else {
+                    // Tipe acak: loop sampai dapat kode unik
+                    do {
+                        $randomCode = strtoupper(Str::random(6));
+                        $fullCode = $prefix . $randomCode;
+                    } while (Participant::where('kode_kupon', $fullCode)->exists());
+
+                    $participant->kode_kupon = $fullCode;
+                }
+            }
+        });
+
         // Saat menghapus record
         static::deleting(function ($participant) {
             $formId = $participant->form_id;

@@ -6,6 +6,7 @@ use App\Filament\User\Resources\ParticipantResource\Pages;
 use App\Filament\User\Resources\ParticipantResource\RelationManagers;
 use App\Models\FormBuilder;
 use App\Models\Participant;
+use App\Models\Coupon;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -120,6 +121,11 @@ class ParticipantResource extends Resource
             ->label('Tanggal')
             ->date();
 
+        $columns[] = Tables\Columns\TextColumn::make('kode_kupon')
+            ->label('Kode Kupon')
+            ->sortable()
+            ->searchable();
+
         return $columns;
     }
 
@@ -127,11 +133,54 @@ class ParticipantResource extends Resource
     {
         return $table
             ->columns(static::getDynamicColumns())
+            ->defaultSort('kode_kupon', 'asc')
             ->filters([
                 //
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
+            ])
+            ->headerActions([
+                Tables\Actions\Action::make('reset_kupon')
+                    ->label('Reset & Generate Ulang Kupon')
+                    ->color('warning')
+                    ->requiresConfirmation()
+                    ->action(function () {
+                        $user = auth()->user();
+                        $form = $user->form;
+
+                        if (!$form || !$form->coupon || !$form->coupon->is_active) {
+                            return;
+                        }
+
+                        $coupon = $form->coupon;
+                        $participants = \App\Models\Participant::where('form_id', $form->id)
+                            ->orderBy('created_at')
+                            ->get();
+
+                        $used = [];
+
+                        foreach ($participants as $index => $participant) {
+                            $kode = null;
+
+                            if ($coupon->number_type === 'sequential') {
+                                $nomor = $index + 1;
+                                $padding = $coupon->getDigitLength();
+                                $formatted = str_pad($nomor, $padding, '0', STR_PAD_LEFT);
+                                $kode = $coupon->use_prefix ? "{$coupon->prefix}-{$formatted}" : $formatted;
+                            } else {
+                                // Nomor acak (non-duplikat)
+                                do {
+                                    $random = strtoupper(\Illuminate\Support\Str::random(6));
+                                    $kode = $coupon->use_prefix ? "{$coupon->prefix}-{$random}" : $random;
+                                } while (in_array($kode, $used) || \App\Models\Participant::where('kode_kupon', $kode)->exists());
+                            }
+
+                            $used[] = $kode;
+                            $participant->kode_kupon = $kode;
+                            $participant->save();
+                        }
+                    })
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
