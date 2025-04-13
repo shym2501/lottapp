@@ -7,19 +7,13 @@ use Illuminate\Database\Eloquent\Model;
 
 class Coupon extends Model
 {
-    use HasFactory;
-
     protected $fillable = [
-        'form_id',
-        'is_active',
-        'use_prefix',
-        'prefix',
-        'number_type',
-        'estimate',
+        'form_id', 'is_active', 'use_prefix', 'prefix', 'number_type', 'estimasi_peserta'
     ];
 
+    // Relasi dengan tabel Form
     public function form()
     {
-        return $this->belongsTo(Form::class);
+        return $this->belongsTo(Form::class, 'form_id');
     }
 }

@@ -55,6 +55,6 @@ class Form extends Model
 
     public function coupon()
     {
-        return $this->hasOne(Coupon::class);
+        return $this->hasOne(Coupon::class, 'form_id');
     }
 }
