@@ -19,7 +19,7 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class FormBuilderResource extends Resource
 {
     protected static ?string $model = FormBuilder::class;
-    protected static ?string $navigationGroup = 'Manajemen Undian';
+    protected static ?string $navigationGroup = 'Manajemen Umum';
     protected static ?string $navigationIcon = 'heroicon-o-pencil-square';
     protected static ?int $navigationSort = 1;
 

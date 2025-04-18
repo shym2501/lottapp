@@ -19,7 +19,7 @@ class CouponSettings extends Page implements HasForms
 {
     use InteractsWithForms;
 
-    protected static ?string $navigationGroup = 'Manajemen Undian';
+    protected static ?string $navigationGroup = 'Manajemen Umum';
     protected static ?string $navigationIcon = 'heroicon-o-ticket';
     protected static ?int $navigationSort = 2;
     protected static string $view = 'filament.user.pages.coupon-settings';

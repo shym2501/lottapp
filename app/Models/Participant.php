@@ -20,6 +20,11 @@ class Participant extends Model
         return $this->belongsTo(Form::class);
     }
 
+    public function winner()
+    {
+        return $this->hasOne(Winner::class);
+    }
+
     protected static function booted()
     {
         // Saat membuat data participant
@@ -36,10 +41,11 @@ class Participant extends Model
 
             if ($coupon) {
                 $prefix = $coupon->use_prefix ? ($coupon->prefix . '-') : '';
-                $digitLength = $coupon->getDigitLength();  // Ambil panjang digit dari coupon
+                $digitLength = $coupon->getDigitLength();
+                $maxKupon = pow(10, $digitLength) - 1;
 
+                // Tipe terurut
                 if ($coupon->number_type === 'sequential') {
-                    // Ambil semua nomor kupon yang sudah digunakan (hanya yang berurutan)
                     $usedNumbers = Participant::where('form_id', $form->id)
                         ->whereNotNull('kode_kupon')
                         ->pluck('kode_kupon')
@@ -48,8 +54,7 @@ class Participant extends Model
                         })
                         ->toArray();
 
-                    // Cari angka terkecil yang belum digunakan
-                    for ($i = 1; $i <= $coupon->estimasi_peserta; $i++) {
+                    for ($i = 1; $i <= $maxKupon; $i++) {
                         if (!in_array($i, $usedNumbers)) {
                             $number = str_pad($i, $digitLength, '0', STR_PAD_LEFT);
                             $participant->kode_kupon = $prefix . $number;

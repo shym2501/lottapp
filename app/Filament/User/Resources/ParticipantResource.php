@@ -4,9 +4,9 @@ namespace App\Filament\User\Resources;
 
 use App\Filament\User\Resources\ParticipantResource\Pages;
 use App\Filament\User\Resources\ParticipantResource\RelationManagers;
+use App\Models\Coupon;
 use App\Models\FormBuilder;
 use App\Models\Participant;
-use App\Models\Coupon;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -22,11 +22,13 @@ class ParticipantResource extends Resource
 {
     protected static ?string $model = Participant::class;
 
-    protected static ?string $navigationGroup = 'Manajemen Undian';
+    protected static ?string $navigationGroup = 'Manajemen Umum';
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
 
     protected static ?int $navigationSort = 3;
+
+    protected static ?string $recordTitleAttribute = 'Daftar Peserta';
 
     public static function getEloquentQuery(): Builder
     {
