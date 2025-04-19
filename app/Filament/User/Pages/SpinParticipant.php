@@ -2,6 +2,7 @@
 
 namespace App\Filament\User\Pages;
 
+use App\Events\SpinStarted;
 use App\Models\Form;
 use App\Models\Participant;
 use App\Models\Winner;
@@ -19,21 +20,51 @@ class SpinParticipant extends Page
 
     public ?Form $form = null;
     public ?Participant $winner = null;
+    public int $spinCount = 0;
+    public bool $allParticipantsWon = false;
 
     public function mount(): void
     {
         $this->form = Form::where('user_id', Auth::id())->first();
+        $this->spinCount = 0;
+        $this->allParticipantsWon = false;  // Setel status awal
 
         if (!$this->form) {
-            $this->notify('danger', 'Form tidak ditemukan');
+            Notification::make()
+                ->title('Form tidak ditemukan')
+                ->danger()
+                ->send();
             return;
         }
 
-        // Jangan panggil spin() otomatis di sini
+        // Cek apakah semua peserta sudah menang
+        $this->checkIfAllParticipantsWon();
+    }
+
+    // Cek apakah semua peserta sudah menang
+    public function checkIfAllParticipantsWon(): void
+    {
+        $totalParticipants = Participant::where('form_id', $this->form->id)->count();
+        $totalWinners = Winner::where('form_id', $this->form->id)->count();
+
+        // Jika jumlah pemenang sama dengan jumlah peserta, berarti semua peserta sudah menang
+        $this->allParticipantsWon = $totalParticipants === $totalWinners;
     }
 
     public function spin(): void
     {
+        // Jika semua peserta sudah menang, tidak boleh spin lagi
+        if ($this->allParticipantsWon) {
+            Notification::make()
+                ->title('Semua peserta sudah menang!')
+                ->warning()
+                ->send();
+            return;
+        }
+
+        // Mengupdate spin count
+        $this->spinCount++;
+
         // Ambil peserta yang belum menang
         $available = Participant::where('form_id', $this->form->id)
             ->whereNotIn('id', function ($query) {
@@ -47,37 +78,26 @@ class SpinParticipant extends Page
 
         if (!$available) {
             Notification::make()
-                ->title('Semua peserta sudah menang.')
+                ->title('Semua peserta sudah menang!')
                 ->warning()
                 ->send();
             return;
         }
 
-        // Tampilkan calon pemenang (belum disimpan)
-        $this->winner = $available;
-    }
-
-    public function confirmWinner(): void
-    {
-        if (!$this->winner) {
-            Notification::make()
-                ->title('Tidak ada peserta yang dipilih.')
-                ->warning()
-                ->send();
-            return;
-        }
-
+        // Simpan pemenang ke tabel winners
         Winner::create([
             'form_id' => $this->form->id,
-            'participant_id' => $this->winner->id,
+            'participant_id' => $available->id,
         ]);
 
+        $this->winner = $available;
+
+        // Cek jika semua peserta sudah menang setelah menambahkan pemenang baru
+        $this->checkIfAllParticipantsWon();
+
         Notification::make()
-            ->title('Pemenang berhasil disimpan!')
+            ->title('Pemenang berhasil dipilih!')
             ->success()
             ->send();
-
-        // Kosongkan pemenang setelah disimpan (opsional)
-        $this->winner = null;
     }
 }
