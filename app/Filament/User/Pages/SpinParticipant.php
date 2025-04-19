@@ -29,7 +29,7 @@ class SpinParticipant extends Page
             return;
         }
 
-        $this->spin();
+        // Jangan panggil spin() otomatis di sini
     }
 
     public function spin(): void
@@ -53,17 +53,31 @@ class SpinParticipant extends Page
             return;
         }
 
-        // Simpan ke tabel winners
+        // Tampilkan calon pemenang (belum disimpan)
+        $this->winner = $available;
+    }
+
+    public function confirmWinner(): void
+    {
+        if (!$this->winner) {
+            Notification::make()
+                ->title('Tidak ada peserta yang dipilih.')
+                ->warning()
+                ->send();
+            return;
+        }
+
         Winner::create([
             'form_id' => $this->form->id,
-            'participant_id' => $available->id,
+            'participant_id' => $this->winner->id,
         ]);
 
-        $this->winner = $available;
-
         Notification::make()
-            ->title('Pemenang berhasil dipilih!')
+            ->title('Pemenang berhasil disimpan!')
             ->success()
             ->send();
+
+        // Kosongkan pemenang setelah disimpan (opsional)
+        $this->winner = null;
     }
 }

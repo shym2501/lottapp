@@ -77,7 +77,9 @@ class CouponSettings extends Page implements HasForms
                         ->options([
                             'sequential' => 'Nomor Urut',
                             'random' => 'Nomor Acak',
-                        ]),
+                        ])
+                        ->default('sequential')  // <- default value saat form load
+                        ->required(),
                     Radio::make('estimasi_peserta')
                         ->label('Estimasi Peserta')
                         ->options([

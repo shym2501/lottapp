@@ -55,13 +55,25 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::created(function ($user) {
-            $user->form()->create([
+            // Buat 1 form default
+            $form = $user->form()->create([
                 'title' => 'Form - ' . $user->name,
                 'user_id' => $user->id,
                 'start_date' => now(),
                 'end_date' => now()->addDays(30),
                 'status' => 'pending',
             ]);
+
+            // Buat 3 field default
+            $defaultFields = [
+                ['label' => 'Nama Lengkap', 'name' => 'fullname', 'type' => 'text', 'is_required' => true, 'position' => 1],
+                ['label' => 'Email', 'name' => 'email', 'type' => 'email', 'is_required' => true, 'position' => 2],
+                ['label' => 'Nomor HP/WA', 'name' => 'contact-person', 'type' => 'number', 'is_required' => true, 'position' => 3],
+            ];
+
+            foreach ($defaultFields as $field) {
+                \App\Models\FormBuilder::create(array_merge($field, ['form_id' => $form->id]));
+            }
         });
     }
 }

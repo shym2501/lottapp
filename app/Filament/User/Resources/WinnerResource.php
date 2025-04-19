@@ -6,7 +6,9 @@ use App\Filament\User\Resources\WinnerResource\Pages;
 use App\Filament\User\Resources\WinnerResource\RelationManagers;
 use App\Models\Winner;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
+use Filament\Tables\Actions\Action;
 use Filament\Tables\Table;
 use Filament\Forms;
 use Filament\Tables;
@@ -55,7 +57,7 @@ class WinnerResource extends Resource
                         $data = $record->participant->data ?? [];
 
                         foreach ($data as $key => $value) {
-                            if (preg_match('/nama/i', $key)) {
+                            if (preg_match('/fullname/i', $key)) {
                                 return $value;
                             }
                         }
@@ -77,6 +79,21 @@ class WinnerResource extends Resource
             ])
             ->actions([
                 //
+            ])
+            ->headerActions([
+                Action::make('resetWinners')
+                    ->label('Reset Semua Pemenang')
+                    ->color('danger')
+                    ->requiresConfirmation()
+                    ->action(function () {
+                        Winner::where('form_id', auth()->user()->form->id)->delete();
+
+                        Notification::make()
+                            ->title('Histori pemenang berhasil dihapus.')
+                            ->success()
+                            ->send();
+                    })
+                    ->icon('heroicon-o-trash'),
             ])
             ->bulkActions([
                 //

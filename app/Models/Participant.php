@@ -73,7 +73,7 @@ class Participant extends Model
             }
         });
 
-        // Saat menghapus record
+        // Hapus Image - Saat menghapus record
         static::deleting(function ($participant) {
             $formId = $participant->form_id;
 
@@ -82,15 +82,15 @@ class Participant extends Model
                 ->pluck('name');
 
             foreach ($fileFields as $fieldName) {
-                $filePath = $participant->data[$fieldName] ?? null;
+                $filePath = $participant->data[$fieldName]['value'] ?? $participant->data[$fieldName] ?? null;
 
-                if ($filePath && Storage::disk('public')->exists($filePath)) {
+                if (is_string($filePath) && Storage::disk('public')->exists($filePath)) {
                     Storage::disk('public')->delete($filePath);
                 }
             }
         });
 
-        // Saat update data
+        // Update Image - Saat update data
         static::updating(function ($participant) {
             $originalData = $participant->getOriginal('data') ?? [];
             $newData = $participant->data ?? [];
@@ -101,13 +101,22 @@ class Participant extends Model
                 ->pluck('name');
 
             foreach ($fileFields as $fieldName) {
-                $originalFile = $originalData[$fieldName] ?? null;
-                $newFile = $newData[$fieldName] ?? null;
+                $originalFile = $originalData[$fieldName]['value'] ?? $originalData[$fieldName] ?? null;
+                $newFile = $newData[$fieldName]['value'] ?? $newData[$fieldName] ?? null;
 
                 // Hapus file lama jika diganti
-                if ($originalFile && $newFile && $originalFile !== $newFile) {
-                    if (Storage::disk('public')->exists($originalFile)) {
-                        Storage::disk('public')->delete($originalFile);
+                if ($originalFile && $newFile) {
+                    $originalPath = is_array($originalFile) ? $originalFile['value'] ?? null : $originalFile;
+                    $newPath = is_array($newFile) ? $newFile['value'] ?? null : $newFile;
+
+                    if (
+                        $originalPath &&
+                        $newPath &&
+                        $originalPath !== $newPath &&
+                        is_string($originalPath) &&
+                        Storage::disk('public')->exists($originalPath)
+                    ) {
+                        Storage::disk('public')->delete($originalPath);
                     }
                 }
             }

@@ -20,4 +20,32 @@ class CreateParticipant extends CreateRecord
             'tableFilters[form_id][value]' => $participant->form_id,
         ]);
     }
+
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        // Ambil form builder yang aktif
+        $formModel = auth()->user()->form;
+        $formBuilderFields = \App\Models\FormBuilder::where('form_id', $formModel->id)
+            ->where('is_active', true)
+            ->get();
+
+        $nestedData = [];
+
+        foreach ($formBuilderFields as $field) {
+            $fieldKey = $field->name;
+            $label = $field->label;
+
+            $value = $data['data'][$fieldKey] ?? null;
+
+            $nestedData[$fieldKey] = [
+                'label' => $label,
+                'value' => $value,
+            ];
+        }
+
+        $data['data'] = $nestedData;
+        $data['form_id'] = $formModel->id;
+
+        return $data;
+    }
 }

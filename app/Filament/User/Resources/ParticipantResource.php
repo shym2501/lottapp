@@ -71,6 +71,16 @@ class ParticipantResource extends Resource
                             ->helperText('Hanya file gambar (.jpg, .png, .webp), max 2MB')
                             ->label($field->label)
                             ->rules(['image', 'max:2048', 'mimes:jpg,jpeg,png,webp']),
+                        'email' => Forms\Components\TextInput::make("data.{$field->name}")
+                            ->label($field->label)
+                            ->email()  // Menambahkan validasi untuk email
+                            ->required()
+                            ->helperText('Masukkan alamat email yang valid'),
+                        'number' => Forms\Components\TextInput::make("data.{$field->name}")
+                            ->label($field->label)
+                            ->numeric()  // Menambahkan validasi untuk angka
+                            ->required()
+                            ->helperText('Masukkan angka yang valid'),
                         default => Forms\Components\TextInput::make("data.{$field->name}"),
                     };
 
@@ -101,15 +111,16 @@ class ParticipantResource extends Resource
                 ->get();
 
             foreach ($formBuilderFields as $field) {
+                $fieldKey = "data.{$field->name}.value";
+
                 if ($field->type === 'file') {
-                    $columns[] = Tables\Columns\ImageColumn::make("data.{$field->name}")
+                    $columns[] = Tables\Columns\ImageColumn::make($fieldKey)
                         ->label($field->label)
-                        ->disk('public')  // Sesuaikan jika kamu pakai disk lain
-                        ->defaultImageUrl(asset('images/placeholder.png'))  // Opsional: gambar default jika kosong
-                        ->circular();  // atau .rounded() jika lebih suka kotak
+                        ->disk('public')
+                        ->defaultImageUrl(asset('images/placeholder.png'))
+                        ->circular();
                 } else {
-                    // Field biasa
-                    $columns[] = Tables\Columns\TextColumn::make("data.{$field->name}")
+                    $columns[] = Tables\Columns\TextColumn::make($fieldKey)
                         ->label($field->label)
                         ->limit(50)
                         ->sortable()
@@ -205,14 +216,5 @@ class ParticipantResource extends Resource
             'create' => Pages\CreateParticipant::route('/create'),
             'edit' => Pages\EditParticipant::route('/{record}/edit'),
         ];
-    }
-
-    public static function mutateFormDataBeforeCreate(array $data): array
-    {
-        $user = Auth::user();
-
-        $data['form_id'] = $user->form->id ?? null;
-
-        return $data;
     }
 }

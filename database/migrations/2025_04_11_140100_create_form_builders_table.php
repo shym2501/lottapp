@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->foreignUuid('form_id')->constrained()->onDelete('cascade'); // Hubungkan ke tabel forms
             $table->string('label');          // Label yang akan ditampilkan ke peserta
             $table->string('name');           // Nama field (misal: nama_lengkap)
-            $table->enum('type', ['text', 'textarea', 'select', 'checkbox', 'file']); // Tipe input
+            $table->enum('type', ['text', 'email', 'number', 'textarea', 'select', 'checkbox', 'file']); // Tipe input
             $table->text('options')->nullable();    // Untuk tipe select/checkbox (format: dipisah koma)
             $table->boolean('is_required')->default(false);
             $table->boolean('is_active')->default(true);

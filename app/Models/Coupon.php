@@ -32,4 +32,25 @@ class Coupon extends Model
 
         return strlen((string) $e);
     }
+
+    protected static function booted()
+    {
+        static::creating(function ($coupon) {
+            if (empty($coupon->number_type)) {
+                $coupon->number_type = 'sequential';
+            }
+        });
+
+        static::updating(function ($coupon) {
+            if (empty($coupon->number_type)) {
+                $coupon->number_type = 'sequential';
+            }
+            // Jika kupon sebelumnya aktif dan sekarang dinonaktifkan
+            if ($coupon->isDirty('is_active') && $coupon->is_active == false) {
+                // Hapus kode kupon dari peserta yang terkait dengan form ini
+                \App\Models\Participant::where('form_id', $coupon->form_id)
+                    ->update(['kode_kupon' => null]);
+            }
+        });
+    }
 }
