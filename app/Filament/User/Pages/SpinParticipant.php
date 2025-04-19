@@ -2,7 +2,7 @@
 
 namespace App\Filament\User\Pages;
 
-use App\Events\SpinStarted;
+use App\Events\SpinUpdated;
 use App\Models\Form;
 use App\Models\Participant;
 use App\Models\Winner;
@@ -12,7 +12,7 @@ use Illuminate\Support\Facades\Auth;
 
 class SpinParticipant extends Page
 {
-    protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?string $navigationIcon = 'heroicon-o-device-phone-mobile';
     protected static ?string $navigationGroup = 'Manajemen Undian';
     protected static ?int $navigationSort = 1;
     protected static ?string $title = 'Metode Spin';
@@ -99,5 +99,15 @@ class SpinParticipant extends Page
             ->title('Pemenang berhasil dipilih!')
             ->success()
             ->send();
+
+        $participant = $available;
+        // / 🔥 Kirim event broadcast ke layar kedua
+        event(new SpinUpdated([
+            'form_id' => $this->form->id,
+            'winner' => [
+                'name' => $participant->name,
+                'kode_kupon' => $participant->kode_kupon,
+            ]
+        ]));
     }
 }

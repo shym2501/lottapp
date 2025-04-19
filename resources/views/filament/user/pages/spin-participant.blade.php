@@ -1,15 +1,15 @@
 <x-filament::page>
-    {{-- Tombol Layar Kedua selalu di pojok kanan atas --}}
-    <div class="absolute top-4 right-4">
-        <a href="{{ route('spin-display') }}" target="_blank">
-            <x-filament::button>
-                Layar Kedua 📺
-            </x-filament::button>
-        </a>
-    </div>
+    <div class="space-y-4">
+        {{-- Bagian Header Konten --}}
+        <div class="flex justify-between items-center">
+            <h2 class="text-2xl font-bold">Undian Peserta</h2>
 
-    <div class="space-y-4 mt-4">
-        <h2 class="text-2xl font-bold">Undian Peserta</h2>
+            <a href="{{ route('spin-display', ['form' => $form->id]) }}" target="_blank">
+                <x-filament::button color="gray">
+                    Layar Kedua 📺
+                </x-filament::button>
+            </a>
+        </div>
 
         @if ($winner)
             <div class="p-6 rounded-xl bg-green-100 text-center">
